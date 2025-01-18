@@ -6,7 +6,7 @@ import pickle
 app = Flask(__name__)
 
 # Load model yang telah dilatih (file model.pkl harus ada di direktori yang sama)
-model = pickle.load(open("model/diabetes_model.pkl", "rb"))
+model = pickle.load(open("final/model/diabetes_model.pkl", "rb"))
 
 # Halaman utama (form input)
 @app.route('/')
