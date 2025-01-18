@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediktor Risiko Diabetes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #e0e0e0;
+        }
+        .result-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+            border-radius: 0 15px 15px 0;
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            color: #34495e;
+            font-size: 0.9em;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52,152,219,0.3);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .btn-predict {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-predict:hover {
+            background-color: #2980b9;
+        }
+        .btn-clear {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-clear:hover {
+            background-color: #c0392b;
+        }
+        .result-display {
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        .result-display h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .risiko-rendah {
+            color: #2ecc71;
+        }
+        .risiko-tinggi {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h1>Prediktor Risiko Diabetes</h1>
+            <form id="diabetesPredictionForm">
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Kesehatan secara umum</label>
+                        <input type="number" id="GenHlth" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Memiliki tekanan darah tinggi</label>
+                        <input type="number" id="HighBP" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>BMI</label>
+                        <input type="number" id="BMI" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Memiliki kolesterol tinggi</label>
+                        <input type="number" id="HighChol" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori umur</label>
+                        <input type="number" id="Age" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Susah berjalan</label>
+                        <input type="number" id="DiffWalk" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori pendapatan</label>
+                        <input type="number" id="Income" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Memiliki riwayat jantung</label>
+                        <input type="number" id="HeartDiseaseorAttack" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Aktivitas Fisik dalam 30 hari</label>
+                        <input type="number" id="PhysHlth" step="0.01" required>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-predict" onclick="predictRisk()">
+                        Prediksi
+                    </button>
+                    <button type="button" class="btn btn-clear" onclick="clearData()">
+                        Hapus data
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="result-section">
+            <div class="result-display" id="resultDisplay">
+                <h2>Hasil Prediksi</h2>
+                <p>Hasil prediksi anda akan ditampilkan disini.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fungsi penyimpanan local storage
+        function saveToLocalStorage() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    localStorage.setItem(input.id, input.value);
+                });
+            });
+        }
+
+        // Fungsi memuat data tersimpan
+        function loadFromLocalStorage() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                const savedValue = localStorage.getItem(input.id);
+                if (savedValue) input.value = savedValue;
+            });
+        }
+
+        // Fungsi menghapus data
+        function clearData() {
+            localStorage.clear();
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            document.getElementById('resultDisplay').innerHTML = `
+                <h2>Hasil Prediksi</h2>
+                <p>Hasil prediksi anda akan ditampilkan disini.</p>
+            `;
+        }
+
+        // Fungsi prediksi risiko (contoh sederhana)
+        function predictRisk() {
+            const inputs = document.querySelectorAll('input');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            // Validasi input
+            const allFilled = Array.from(inputs).every(input => input.value !== '');
+            
+            if (!allFilled) {
+                alert('Harap isi semua kolom input return');
+            }
+
+            // Contoh logika prediksi sederhana
+            const riskScore = Array.from(inputs).reduce((sum, input) => sum + parseFloat(input.value), 0);
+            let riskLevel = 'Berisiko rendah';
+            if (riskScore > 30) {
+                riskLevel = 'Berisiko tinggi';
+            }
+
+            resultDisplay.innerHTML = `
+                <h2>Hasil Prediksi</h2>
+                <p class="${riskLevel === 'Berisiko tinggi' ? 'risiko-tinggi' : 'risiko-rendah'}">${riskLevel}</p>
+            `;
+        }
+
+        // Memuat data saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            saveToLocalStorage();
+        });
+    </script>
+</body>
+</html>
